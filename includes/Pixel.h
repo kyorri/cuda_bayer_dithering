@@ -17,22 +17,11 @@ namespace bayer_dithering {
 		Pixel& operator=(Pixel&&) = default;
 		Pixel(Pixel&&) = default;
 
-		uint8_t GetR();
-		void SetR(uint8_t);
-
-		uint8_t GetG();
-		void SetG(uint8_t);
-
-		uint8_t GetB();
-		void SetB(uint8_t);
-
-		std::tuple<uint8_t, uint8_t, uint8_t> Get();
-
 		void Set(uint8_t);
 		void Set(std::tuple<uint8_t, uint8_t, uint8_t>);
 
 		void ConvertGrayscale();
-	private:
+
 		uint8_t r, g, b;
 	};
 } // namespace bayer_dithering

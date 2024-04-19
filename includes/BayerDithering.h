@@ -6,6 +6,7 @@ namespace bayer_dithering {
 class BayerDithering {
 public:
     BayerDithering() = default;
-    void ProcessImage(Image&);
+    void ProcessImageSerial(Image&);
+    void ProcessImageParallel(Image&);
 };
 } // namespace bayer_dithering
