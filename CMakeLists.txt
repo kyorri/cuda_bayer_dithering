@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(includes)
+include_directories(src)
 
 find_package(CUDA REQUIRED)
 

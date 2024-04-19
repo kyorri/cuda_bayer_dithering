@@ -1,6 +1,7 @@
 #include "BayerDithering.h"
 
 #include "Image.h"
+#include "Pixel.h"
 
 #include <cmath>
 #include <algorithm>
@@ -19,11 +20,11 @@ namespace bayer_dithering {
             uint8_t threshold = dither[dither_idx] * multiplier;
             uint32_t flipped_idx = ((height - 1 - y) * width) + x;
             Pixel& p = img_pixels[flipped_idx];
-            p = (p.r > threshold || p.g > threshold || p.b > threshold) ? Pixel(255) : Pixel(0);
+            p.r = p.g = p.b = (p.r > threshold || p.g > threshold || p.b > threshold) ? 255 : 0;
         }
     }
 
-    void BayerDithering::ProcessImageParallel(Image& _img) {
+    void BayerDithering::ProcessImageParallel(Image& _img, uint32_t blockX, uint32_t blockY) {
         _img.ConvertGrayscale();
 
         std::vector<uint8_t> dither { 0, 32, 8, 40, 2, 34, 10, 42,
@@ -52,7 +53,7 @@ namespace bayer_dithering {
         cudaMemcpy(d_img_pixels, img_pixels.data(), width * height * sizeof(Pixel), cudaMemcpyHostToDevice);
         cudaMemcpy(d_dither, dither.data(), dither.size() * sizeof(uint8_t), cudaMemcpyHostToDevice);
 
-        dim3 blockDim(16, 16);
+        dim3 blockDim(blockX, blockY);
         dim3 gridDim((width + blockDim.x - 1) / blockDim.x, (height + blockDim.y - 1) / blockDim.y);
 
         BayerDitheringKernel<<<gridDim, blockDim>>>(d_img_pixels, width, height, d_dither, dither_size, multiplier);

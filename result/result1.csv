@@ -1,2 +1,3 @@
 benchmark# ;secvential time ;parallel time
-image#1    ;0.1234 ms       ;2.3456 ms
+lavender    ;356 ms       ;261 ms
+galaxy		;506 ms		  ;292 ms
