@@ -13,7 +13,11 @@ public:
 
     uint32_t GetWidth();
     uint32_t GetHeight();
+    
+    Pixel& GetPixel(uint32_t, uint32_t);
     std::vector<Pixel>& GetBuffer();
+    void SetBuffer(std::vector<Pixel>&);
+
 private:
     uint32_t w_;
     uint32_t h_;
