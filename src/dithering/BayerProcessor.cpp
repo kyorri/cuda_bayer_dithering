@@ -1,4 +1,8 @@
 #include "BayerProcessor.h"
+#include "FunctionTimer.h"
+#include "BayerDithering.h"
+#include "BayerResult.h"
+#include "BayerResultExporter.h"
 
 #include <algorithm>
 
@@ -16,6 +20,7 @@ namespace bayer_dithering {
         BitmapReader bmp_reader;
         BitmapWriter bmp_writer;
         BayerDithering bayer_dither;
+        BayerResultExporter bayer_exporter;
 
         if (!std::filesystem::exists(in_directory_)) {
             std::filesystem::create_directory(in_directory_);
@@ -24,7 +29,8 @@ namespace bayer_dithering {
         if (!std::filesystem::exists(out_directory_)) {
             std::filesystem::create_directory(out_directory_);
         }
-        
+
+        std::vector<BayerResult> results;
         for (const auto& file : std::filesystem::directory_iterator(in_directory_)) {
             if (file.is_directory()) {
                 continue;
@@ -37,9 +43,23 @@ namespace bayer_dithering {
                 Image img = bmp_reader.ReadBitmapImage(file);
                 Image s_img = img;
                 Image p_img = img;
-
+                
+                
+                auto start_serial = std::chrono::high_resolution_clock::now();
                 bayer_dither.ProcessImageSerial(s_img);
-                bayer_dither.ProcessImageParallel(p_img, 1024, 1024);
+                auto end_serial = std::chrono::high_resolution_clock::now();
+                auto duration_serial = std::chrono::duration_cast<std::chrono::microseconds>(end_serial - start_serial);
+                BayerResult result(file_name, duration_serial);
+
+                for (int i = 16; i < 4096; i *= 2) {
+                    auto start_parallel = std::chrono::high_resolution_clock::now();
+                    bayer_dither.ProcessImageParallel(p_img, i, i);
+                    auto end_parallel = std::chrono::high_resolution_clock::now();
+                    auto duration_parallel = std::chrono::duration_cast<std::chrono::microseconds>(end_parallel - start_parallel);
+                    result.AddParallelTime(duration_parallel, i, i);
+                }
+
+                results.push_back(result);
 
                 std::filesystem::path serial_full_file_name(file_name + "_s.bmp");
                 std::filesystem::path parallel_full_file_name(file_name + "_p.bmp");
@@ -48,6 +68,7 @@ namespace bayer_dithering {
                 bmp_writer.WriteBitmapImage(p_img, out_directory_ / parallel_full_file_name);
             }
         };
+        bayer_exporter.ExportToCSV(out_directory_ / "results.csv", results);
 
 	};
 } // namespace bayer_dithering
