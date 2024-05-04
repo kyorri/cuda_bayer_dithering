@@ -41,6 +41,7 @@ namespace bayer_dithering {
                 std::string file_name = file_path.stem().string();
 
                 Image img = bmp_reader.ReadBitmapImage(file);
+                img.ConvertGrayscale();
                 Image s_img = img;
                 Image p_img = img;
                 
@@ -51,7 +52,7 @@ namespace bayer_dithering {
                 auto duration_serial = std::chrono::duration_cast<std::chrono::microseconds>(end_serial - start_serial);
                 BayerResult result(file_name, duration_serial);
 
-                for (int i = 16; i < 4096; i *= 2) {
+                for (int i = 16; i <= 4096; i *= 2) {
                     auto start_parallel = std::chrono::high_resolution_clock::now();
                     bayer_dither.ProcessImageParallel(p_img, i, i);
                     auto end_parallel = std::chrono::high_resolution_clock::now();
@@ -61,11 +62,13 @@ namespace bayer_dithering {
 
                 results.push_back(result);
 
-                std::filesystem::path serial_full_file_name(file_name + "_s.bmp");
-                std::filesystem::path parallel_full_file_name(file_name + "_p.bmp");
+                std::filesystem::path full_file_name(file_name + ".bmp");
+                // std::filesystem::path serial_full_file_name(file_name + "_s.bmp");
+                // std::filesystem::path parallel_full_file_name(file_name + "_p.bmp");
 
-                bmp_writer.WriteBitmapImage(s_img, out_directory_ / serial_full_file_name);
-                bmp_writer.WriteBitmapImage(p_img, out_directory_ / parallel_full_file_name);
+                bmp_writer.WriteBitmapImage(s_img, out_directory_ / full_file_name);
+                // bmp_writer.WriteBitmapImage(s_img, out_directory_ / serial_full_file_name);
+                // bmp_writer.WriteBitmapImage(p_img, out_directory_ / parallel_full_file_name);
             }
         };
         bayer_exporter.ExportToCSV(out_directory_ / "results.csv", results);

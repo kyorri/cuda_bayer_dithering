@@ -34,7 +34,9 @@ namespace bayer_dithering {
             Pixel p = in_pixels[y * width + x];
             float new_value = 0.0f;
 
-            if (p.r * 255.0f >= threshold || p.b * 255.0f >= threshold || p.g * 255.0f >= threshold) {
+            float accuracy = 1.0f / 256.0f;
+            
+            if (p.r > threshold - accuracy || p.b > threshold - accuracy || p.g > threshold - accuracy) {
                 new_value = 1.0f;
             }
 
@@ -47,8 +49,7 @@ namespace bayer_dithering {
 
 
     void BayerDithering::ProcessImageParallel(Image& _img, uint32_t blockX, uint32_t blockY) {
-        _img.ConvertGrayscale();
-
+        
         std::vector<Pixel>& img_pixels = _img.GetBuffer();
         uint32_t width = _img.GetWidth();
         uint32_t height = _img.GetHeight();
